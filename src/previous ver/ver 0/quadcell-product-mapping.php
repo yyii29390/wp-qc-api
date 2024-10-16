@@ -192,16 +192,16 @@ function load_product()
 function quadcell_api_product_mapping_section()
 {
     ?>
-<h3>Product Mapping</h3>
-<table>
+    <h3>Product Mapping</h3>
+    <table>
 
-    <th>
-        WC Product
-    </th>
-    <th>
-        <select>
-            <option value="">-</option>
-            <?php
+        <th>
+            WC Product
+        </th>
+        <th>
+            <select>
+                <option value="">-</option>
+                <?php
                 $args = array(
                     'status' => 'publish',
                 );
@@ -211,18 +211,18 @@ function quadcell_api_product_mapping_section()
                     echo '<option value="' . ($product->get_data())['id'] . '">' . ($product->get_data())['name'] . ($product->get_data())['sku'] . '</option>';
                 }
                 ?>
-        </select>
-    </th>
+            </select>
+        </th>
 
-    <th>
-        Profile
-    </th>
-    <th>
-        <select>
-            <option>
-                -
-            </option>
-            <?php
+        <th>
+            Profile
+        </th>
+        <th>
+            <select>
+                <option>
+                    -
+                </option>
+                <?php
                 global $wpdb;
                 $api_mappings_table = $wpdb->prefix . 'qc_api_mappings';
                 $profiles = $wpdb->get_results("SELECT DISTINCT profile_name FROM $api_mappings_table", ARRAY_A);
@@ -230,28 +230,32 @@ function quadcell_api_product_mapping_section()
                     echo '<option value="' . $profile['profile_name'] . '">' . $profile['profile_name'] . ($product->get_data())['sku'] . '</option>';
                 }
                 ?>
-        </select>
-    </th>
-
-    <th>
-        <button type="button" class="button">Add Processing</button>
-    </th>
-    </tr>
-
-</table>
-<table class="widefat fixed" cellspacing="0">
-    <thead>
-        <tr>
-            <th>id</th>
-            <th>Product</th>
-            <th>Profile</th>
+            </select>
+        </th>
+        <th>API:</th>
+        <th style="text-align:left">
+            <div> 1.Addsub</div>
+            <div> 2.QuerySub</div>
+            <div> 3.QuerySub</div>
+        <th>
+            <button type="button" class="button">Add Processing</button>
+        </th>
         </tr>
-    </thead>
 
-</table>
+    </table>
+    <table class="widefat fixed" cellspacing="0">
+        <thead>
+            <tr>
+                <th>id</th>
+                <th>Product</th>
+                <th>Profile</th>
+            </tr>
+        </thead>
 
-<div id="product-option">1324</div>
-<?php
+    </table>
+
+    <div id="product-option">1324</div>
+    <?php
 }
 
 

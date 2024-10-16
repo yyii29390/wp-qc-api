@@ -5,6 +5,9 @@ defined('ABSPATH') or die('No script kiddies please!');
 // Define your AJAX actions
 add_action('wp_ajax_delete_plan_code', 'delete_plan_code');
 add_action('wp_ajax_add_plan_code', 'add_plan_code');
+add_action('wp_ajax_load_plan_code', 'load_plan_code');
+add_action('wp_ajax_update_plan_code', 'update_plan_code');
+
 function quadcell_create_plancode_table()
 {
     global $wpdb;
@@ -40,7 +43,8 @@ function quadcell_create_plancode_table()
 // register_activation_hook(__FILE__, 'quadcell_create_plancode_table');
 function add_plan_code()
 {
-    verify_nonce('quadcell_plan_code_nonce');
+
+
     global $wpdb;
     $table_name = $wpdb->prefix . 'qc_plancode';
 
@@ -58,15 +62,15 @@ function add_plan_code()
 
     if ($wpdb->insert($table_name, $data, $format)) {
         $data['id'] = $wpdb->insert_id;
-        wp_send_json_success(array('message' => 'Plancode added successfully', 'sim_record' => $data));
+        wp_send_json_success(array('message' => 'Plancode added successfully', 'plancode' => $data));
     } else {
-        wp_send_json_error(array('message' => 'Plancode to add plancode '), 500);
+        wp_send_json_error(array('message' => 'Failed to add plancode '), 500);
     }
 }
 function delete_plan_code()
 {
 
-    verify_nonce('quadcell_plan_code_nonce');
+
     global $wpdb;
     $table_name = $wpdb->prefix . 'qc_plancode';
 
@@ -108,7 +112,34 @@ function load_plan_code()
         wp_send_json_error(array('message' => 'No records found'), 404);
     }
 }
+function update_plan_code()
+{
 
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'qc_plancode';
+
+    $id = intval($_POST['id']);
+    $data = array(
+        'applicable_IMSI' => sanitize_text_field($_POST['applicable_IMSI']),
+        'planCode' => sanitize_text_field($_POST['planCode']),
+        'roaming_Region' => sanitize_text_field($_POST['roaming_Region']),
+        'mobile_Service' => sanitize_text_field($_POST['mobile_Service']),
+        'roaming_Profile' => sanitize_text_field($_POST['roaming_Profile']),
+        'validity_Mode' => sanitize_text_field($_POST['validity_Mode'])
+    );
+
+    error_log('Update data: ' . print_r($data, true)); // Log received data
+
+    $where = array('id' => $id);
+    $format = array('%s', '%s', '%s', '%s', '%s', '%s');
+    // $where_format = array('%d');
+
+    if ($wpdb->update($table_name, $data, $where, $format)) {
+        wp_send_json_success(array('message' => 'Plan code updated successfully', 'sim_record' => $data));
+    } else {
+        wp_send_json_error(array('message' => 'Failed to update Plan code'), 500);
+    }
+}
 
 function quadcell_api_plan_code_section()
 {
@@ -126,11 +157,14 @@ function quadcell_api_plan_code_section()
             <table class="form-table">
                 <tr valign="top">
                     <th scope="row">Applicable IMSI</th>
-                    <td><input type="text" id="applicable_IMSI" name="applicable_IMSI" value="" required /></td>
+                    <td><input type="text" id="applicable_IMSI" name="applicable_IMSI" value="" maxlength="5" type="number"
+                            required />
+                    </td>
                 </tr>
                 <tr valign="top">
                     <th scope="row">Plan Code</th>
-                    <td><input type="text" id="planCode" name="planCode" value="" required /></td>
+                    <td><input type="text" id="planCode" name="planCode" value="" required maxlength="6" required />
+                    </td>
                 </tr>
                 <tr valign="top">
                     <th scope="row">Roaming Region</th>
@@ -150,6 +184,9 @@ function quadcell_api_plan_code_section()
                 </tr>
             </table>
             <button type="button" id="add-plan-code-button" class="button button-primary">Add Plan Code</button>
+            <button type="button" id="update-plan-code-button" class="button button-primary" style="display:none;">Update
+                Plan code</button>
+            <button type="button" id="cancel-edit-button" class="button" style="display:none;">Cancel</button>
         </form>
 
         <!-- Table to display all plan codes -->

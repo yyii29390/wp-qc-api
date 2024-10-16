@@ -1,8 +1,20 @@
 jQuery(document).ready(function($) {
-
+    let isEditMode = false; 
+    $('#update-plan-code-button, #cancel-edit-button').hide();
+    function loadPlanCodeRecords() {
+        $.get(quadcellPlanCode.ajax_url, { action: 'load_plan_code' }, function(response) {
+            if (response.success) {
+                $('#plan-codes-table-body').html(response.data.html);
+            } else {
+                alert('Error: ' + response.data.message);
+            }
+        });
+    }
     
     $('#add-plan-code-button').on('click', function() {
-        
+        if (isEditMode) {
+            return; // Prevent adding while in edit mode
+        }
         var data = {
             action: 'add_plan_code',
             applicable_IMSI: $('#applicable_IMSI').val(),        
@@ -17,22 +29,8 @@ jQuery(document).ready(function($) {
         
             if (response.success) {
                 alert(response.data.message);
-                $('#plan-codes-table-body').append(
-       
-                    '<tr>' +
-                    '<td>' + response.data.plan_code.id + '</td>' +
-                    '<td>' + response.data.plan_code.applicable_IMSI + '</td>' +
-                    '<td>' + response.data.plan_code.planCode + '</td>' +
-                    '<td>' + response.data.plan_code.roaming_Region + '</td>' +
-                    '<td>' + response.data.plan_code.mobile_Service + '</td>' +
-                    '<td>' + response.data.plan_code.roaming_Profile + '</td>' +
-                    '<td>' + response.data.plan_code.validity_Mode + '</td>' +
-                    '<td>' +
-                    '<button class="delete-plan-code-button button" data-id="' + response.data.plan_code.id + '">Delete</button>' +
-                    '<button class="edit-plan-code-button button" data-id="' + response.data.plan_code.id + '">Edit</button>' +
-                    '</td>' +
-                    '</tr>'
-                );
+                loadPlanCodeRecords()
+
             } else {
                 console.log("Error show")
                 alert('Error: ' + response.data.message);
@@ -57,7 +55,9 @@ jQuery(document).ready(function($) {
     //     });
     // });
 
-    $('#plan-codes-table-body').on('click', '.edit-plan-code-button', function() {
+    $('#plan-codes-table-body').on('click', '.edit-plan-code-button', function(event) {
+        event.preventDefault(); // Prevent form submission if inside form
+        isEditMode = true; // Set edit mode to true
         var id = $(this).data('id');
         var row = $(this).closest('tr');
         var applicable_IMSI = row.find('td').eq(1).text();
@@ -75,10 +75,12 @@ jQuery(document).ready(function($) {
         $('#validity_Mode').val(validity_Mode);
 
         $('#add-plan-code-button').hide();
-        $('#update-plan-code-button').remove();
+        // $('#update-plan-code-button').remove();
+        $('#update-plan-code-button, #cancel-edit-button').show().data('id', id);
         $('#add-plan-code-form').append('<button type="button" id="update-plan-code-button" class="button button-primary">Update Plan Code</button>');
 
         $('#update-plan-code-button').on('click', function() {
+            var id = $(this).data('id');
             var data = {
                 action: 'update_plan_code',
                 id: id,
@@ -93,16 +95,18 @@ jQuery(document).ready(function($) {
             $.post(quadcellPlanCode.ajax_url, data, function(response) {
                 if (response.success) {
                     alert(response.data.message);
-                    row.find('td').eq(1).text(data.applicable_IMSI);
-                    row.find('td').eq(2).text(data.planCode);
-                    row.find('td').eq(3).text(data.roaming_Region);
-                    row.find('td').eq(4).text(data.mobile_Service);
-                    row.find('td').eq(5).text(data.roaming_Profile);
-                    row.find('td').eq(6).text(data.validity_Mode);
+                    // row.find('td').eq(1).text(data.applicable_IMSI);
+                    // row.find('td').eq(2).text(data.planCode);
+                    // row.find('td').eq(3).text(data.roaming_Region);
+                    // row.find('td').eq(4).text(data.mobile_Service);
+                    // row.find('td').eq(5).text(data.roaming_Profile);
+                    // row.find('td').eq(6).text(data.validity_Mode);
 
                     $('#update-plan-code-button').remove();
                     $('#add-plan-code-button').show();
-                    $('#add-plan-code-form')[0].reset();
+                    isEditMode = false;
+                    loadPlanCodeRecords()
+                    // $('#add-plan-code-form')[0].reset();
                 } else {
                     alert('Error: ' + response.data.message);
                 }
@@ -172,13 +176,5 @@ jQuery(document).ready(function($) {
             });}
         
     });
-    function loadPlanCodeRecords() {
-        $.get(quadcellPlanCode.ajax_url, { action: 'load_plan_code' }, function(response) {
-            if (response.success) {
-                $('#plan-codes-table-body').html(response.data.html);
-            } else {
-                alert('Error: ' + response.data.message);
-            }
-        });
-    }
+ 
 });

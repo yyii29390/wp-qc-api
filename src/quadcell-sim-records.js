@@ -95,6 +95,7 @@ jQuery(document).ready(function($) {
 
     // Function to handle updating a SIM record
     $('#update-sim-record-button').on('click', function() {
+        console.log('Update button clicked'); // Log when the button is clicked
         var id = $(this).data('id');
         var data = {
             action: 'update_sim_record',
@@ -109,7 +110,6 @@ jQuery(document).ready(function($) {
         console.log('Sending update data:', data); // Log data
 
         $.post(quadcellSimRecords.ajax_url, data, function(response) {
-            console.log('Update response:', response); // Log response
             if (response.success) {
                 alert(response.data.message);
                 $('#update-sim-record-button, #cancel-edit-button').hide();
