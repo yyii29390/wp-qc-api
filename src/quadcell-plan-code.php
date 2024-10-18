@@ -142,7 +142,7 @@ function update_plan_code()
     // $where_format = array('%d');
 
     if ($wpdb->update($table_name, $data, $where, $format)) {
-        wp_send_json_success(array('message' => 'Plan code updated successfully', 'sim_record' => $data));
+        wp_send_json_success(array('message' => 'Plan code updated successfully', 'plancode' => $data));
 
     } else {
         wp_send_json_error(array('message' => 'Failed to update Plan code'), 500);

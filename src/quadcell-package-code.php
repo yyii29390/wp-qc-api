@@ -51,7 +51,6 @@ function verify_nonce_package_code()
 function add_package_code()
 {
 
-
     global $wpdb;
     $table_name = $wpdb->prefix . 'qc_package_code';
 
@@ -143,10 +142,10 @@ function update_package_code()
 
     $where = array('id' => $id);
     $format = array('%s', '%s', '%s', '%s', '%s', '%s', '%s');
-    // $where_format = array('%d');
+    $where_format = array('%d');
 
-    if ($wpdb->update($table_name, $data, $where, $format)) {
-        wp_send_json_success(array('message' => 'Package code updated successfully', 'sim_record' => $data));
+    if ($wpdb->update($table_name, $data, $where, $format, $where_format)) {
+        wp_send_json_success(array('message' => 'Package code updated successfully', 'package_code' => $data));
 
     } else {
         wp_send_json_error(array('message' => 'Failed to update Package code'), 500);

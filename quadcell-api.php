@@ -3,7 +3,7 @@
  * Plugin Name: Quadcell API Plugin
  * Plugin URI: http://localhost/quadcell-api
  * Description: Quadcell API plugin.
- * Version: 1.3.1.22
+ * Version: 1.3.1.23
  * Author: Quadcell Communications Ltd
  * Author URI: http://www.quadcell.com
  * License: GPL2
@@ -64,7 +64,7 @@ function quadcell_api_create_menu()
 
 register_activation_hook(__FILE__, 'quadcell_create_sim_records_table');
 register_activation_hook(__FILE__, 'quadcell_create_plancode_table');
-register_activation_hook(__FILE__, 'create_qc_package_code_table');
+register_activation_hook(__FILE__, 'quadcell_create_package_code_table');
 register_activation_hook(__FILE__, 'create_qc_api_mapping_table');
 register_activation_hook(__FILE__, 'quadcell_create_product_map_table');
 

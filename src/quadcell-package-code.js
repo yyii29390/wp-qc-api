@@ -1,8 +1,8 @@
 jQuery(document).ready(function($) {
     let isEditMode = false; 
     $('#update-package-code-button, #cancel-edit-button').hide();
-    function loadpackage_CodeRecords() {
-        $.get(quadcellPackageCode.ajax_url, { action: 'load_plan_code' }, function(response) {
+    function loadPackageCodeRecords() {
+        $.get(quadcellPackageCode.ajax_url, { action: 'load_package_code' }, function(response) {
             if (response.success) {
                 $('#package-codes-table-body').html(response.data.html);
             } else {
@@ -16,7 +16,7 @@ jQuery(document).ready(function($) {
             return; // Prevent adding while in edit mode
         }
         var data = {
-            action: 'add_plan_code',
+            action: 'add_package_code',
             applicable_IMSI: $('#applicable_IMSI').val(),        
             package_Code: $('#package_Code').val(),
             preset_Data_Volume: $('#preset_Data_Volume').val(),
@@ -30,7 +30,7 @@ jQuery(document).ready(function($) {
         
             if (response.success) {
                 alert(response.data.message);
-                loadpackage_CodeRecords()
+                loadPackageCodeRecords();
                 $('#applicable_IMSI').val("");
                 $('#package_Code').val("");
                 $('#preset_Data_Volume').val("");
@@ -48,7 +48,7 @@ jQuery(document).ready(function($) {
     // $('#package-codes-table-body').on('click', '.delete-package-code-button', function() {
     //     var id = $(this).data('id');
     //     var data = {
-    //         action: 'delete_plan_code',
+    //         action: 'delete_package_code',
     //         id: id
     //     };
 
@@ -93,7 +93,7 @@ jQuery(document).ready(function($) {
         $('#update-package-code-button').on('click', function() {
             var id = $(this).data('id');
             var data = {
-                action: 'update_plan_code',
+                action: 'update_package_code',
                 id: id,
                 applicable_IMSI: $('#applicable_IMSI').val(),
                 package_Code: $('#package_Code').val(),
@@ -123,7 +123,7 @@ jQuery(document).ready(function($) {
                     $('#update-package-code-button').remove();
                     $('#add-package-code-button').show();
                     isEditMode = false;
-                    loadpackage_CodeRecords()
+                    loadPackageCodeRecords();
                     // $('#add-package-code-form')[0].reset();
                 } else {
                     alert('Error: ' + response.data.message);
@@ -176,7 +176,7 @@ jQuery(document).ready(function($) {
             event.preventDefault(); // Prevent form submission if inside form
             var id = $(this).data('id');
             var data = {
-                action: 'delete_plan_code',
+                action: 'delete_package_code',
                 id: id,
                 nonce: quadcellPackageCode.nonce
             };
@@ -187,7 +187,7 @@ jQuery(document).ready(function($) {
                 console.log('Delete response:', response); // Log response
                 if (response.success) {
                     alert(response.data.message);
-                    loadpackage_CodeRecords(); // Refresh the table data
+                    loadPackageCodeRecords(); // Refresh the table data
                 } else {
                     alert('Error: ' + response.data.message);
                 }
