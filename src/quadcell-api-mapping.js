@@ -9,11 +9,11 @@ jQuery(document).ready(function($) {
         $.each(quadcellApiMapping.api_commands, function(command, fields) {
             newRow += '<option value="' + command + '">' + command + '</option>';
         });
-        newRow += '</select></td><td><select name="api_mappings[' + newIndex + '][plan_code]" class="plan-code-select">';
+        // newRow += '</select></td><td><select name="api_mappings[' + newIndex + '][plan_code]" class="plan-code-select">';
         newRow += '<option value="">-</option>'; // Default blank selection
-        $.each(quadcellApiMapping.plan_codes, function(i, plan) {
-            newRow += '<option value="' + plan.planCode + '" ' + (plan.planCode === selectedPlanCode ? 'selected' : '') + '>' + plan.planCode + '</option>';
-        });
+        // $.each(quadcellApiMapping.plan_codes, function(i, plan) {
+        //     newRow += '<option value="' + plan.planCode + '" ' + (plan.planCode === selectedPlanCode ? 'selected' : '') + '>' + plan.planCode + '</option>';
+        // });
         newRow += '</select><div class="plan-code-info"></div></td><td><div class="api-parameters-container"></div></td><td><input type="number" name="api_mappings[' + newIndex + '][sequence]" value="' + (newIndex + 1) + '" class="sequence-input" min="1" /></td><td><button type="button" class="button move-up">Up</button><button type="button" class="button move-down">Down</button><button type="button" class="button remove-mapping">Remove</button></td></tr>';
         table.append(newRow);
     }
@@ -55,38 +55,48 @@ jQuery(document).ready(function($) {
 
         var selectedProfile = $('#selected_profile').val(); // Capture the selected profile
         var formData = $(this).serializeArray(); // Serialize form data as an array
-
+console.log("formData",formData);
         // Convert serialized data to an object for easier manipulation
         var mappingsData = {
             selected_profile: selectedProfile,
             api_mappings: []
         };
-
+      let timesOfLoop =0
         $.each(formData, function(_, field) {
             var match = field.name.match(/^api_mappings\[(\d+)]\[(.+)]$/);
+    ;
             if (match) {
                 var index = parseInt(match[1]);
-                var key = match[2];
-
+                var key = match[2]
+                if (!mappingsData.api_mappings[index] ) {
+                    mappingsData.api_mappings[index] = {};
+                }
+                
+                
+                console.log("field",field);
                 // Ensure mappingsData.api_mappings has an array entry at the current index
-                if (!mappingsData.api_mappings[index]) {
-                    mappingsData.api_mappings[index] = { parameters: {} };
-                }
-
-                if (key === 'api_command' || key === 'plan_code' || key === 'sequence') {
+                console.log("match",match)
+                if (key === 'api_command' || key === 'sequence') {
                     mappingsData.api_mappings[index][key] = field.value;
-                } else if (key === 'parameters') {
-                    // Correctly handle nested parameter values
-                    var paramMatch = field.name.match(/^api_mappings\[(\d+)]\[parameters]\[(.+)]$/);
-                    if (paramMatch) {
-                        var paramKey = paramMatch[2];
-                        mappingsData.api_mappings[index].parameters[paramKey] = field.value;
-                    }
-                }
+       
+                } 
             }
+            else {
+                var paramMatch = field.name.match(/^api_mappings\[]\[parameters]\[(.+)]$/);
+                if (paramMatch) {
+                    var index = 0;
+                    var paramKey = paramMatch[1];
+                    if (!mappingsData.api_mappings[index].parameters) {
+                        mappingsData.api_mappings[index].parameters = {};
+                    }
+                    mappingsData.api_mappings[index].parameters[paramKey]= field.value;
+                            
+                }}
+            
         });
 
         // Debugging: Display the mappings data to verify
+        
         console.log("Mappings Data before sending:", mappingsData);
 
         // Send formatted data to the server

@@ -43,7 +43,6 @@ function create_qc_api_mapping_table()
     $sql = "CREATE TABLE $table_name (
         id mediumint(9) NOT NULL AUTO_INCREMENT,
         profile_name varchar(100) NOT NULL,
-        plan_code varchar(20) NOT NULL,
         api_command varchar(50) NOT NULL,
         parameters longtext NOT NULL,
         sequence int(11) NOT NULL,
@@ -60,9 +59,9 @@ function quadcell_api_plan_to_api_section()
 {
     global $wpdb, $api_commands;
 
-    $plan_codes_table = $wpdb->prefix . 'qc_plancode';
+    // $plan_codes_table = $wpdb->prefix . 'qc_plancode';
     $api_mappings_table = $wpdb->prefix . 'qc_api_mappings';
-    $plan_codes = $wpdb->get_results("SELECT * FROM $plan_codes_table", ARRAY_A);
+    // $plan_codes = $wpdb->get_results("SELECT * FROM $plan_codes_table", ARRAY_A);
     $profiles = $wpdb->get_results("SELECT DISTINCT profile_name FROM $api_mappings_table", ARRAY_A);
 
     // Only set the initial selected profile if it is not already set by the user's choice
@@ -91,7 +90,6 @@ function quadcell_api_plan_to_api_section()
             <thead>
                 <tr valign="top">
                     <th scope="row">API Command</th>
-                    <th scope="row">Plan Code</th>
                     <th scope="row">Parameters</th>
                     <th scope="row" width="10px">Sequence</th>
                     <th scope="row">Actions</th>
@@ -146,8 +144,8 @@ function add_new_profile()
         // Insert a dummy entry to create the profile
         $wpdb->insert(
             "{$wpdb->prefix}qc_api_mappings",
-            ['profile_name' => $profile_name, 'plan_code' => '', 'api_command' => '', 'parameters' => '', 'sequence' => 0],
-            ['%s', '%s', '%s', '%s', '%d']
+            ['profile_name' => $profile_name, 'api_command' => '', 'parameters' => '', 'sequence' => 0],
+            ['%s', '%s', '%s', '%d']
         );
 
         wp_send_json_success(['message' => 'Profile created successfully.']);
@@ -156,32 +154,32 @@ function add_new_profile()
 add_action('wp_ajax_add_new_profile', 'add_new_profile');
 
 // Handle AJAX request to load profile mappings
-function load_profile_mappings()
-{
-    check_ajax_referer('fetch_plan_code_info_nonce', 'nonce');
+// function load_profile_mappings()
+// {
+//     check_ajax_referer('fetch_plan_code_info_nonce', 'nonce');
 
-    global $wpdb;
-    $profile_name = sanitize_text_field($_POST['profile_name']);
-    $table_name = $wpdb->prefix . 'qc_api_mappings';
+//     global $wpdb;
+//     $profile_name = sanitize_text_field($_POST['profile_name']);
+//     $table_name = $wpdb->prefix . 'qc_api_mappings';
 
-    // Debugging: Check the profile name being queried
-    error_log("Loading mappings for profile: " . $profile_name);
+//     // Debugging: Check the profile name being queried
+//     error_log("Loading mappings for profile: " . $profile_name);
 
-    $mappings = $wpdb->get_results($wpdb->prepare(
-        "SELECT * FROM $table_name WHERE profile_name = %s ORDER BY sequence ASC",
-        $profile_name
-    ), ARRAY_A);
+//     $mappings = $wpdb->get_results($wpdb->prepare(
+//         "SELECT * FROM $table_name WHERE profile_name = %s ORDER BY sequence ASC",
+//         $profile_name
+//     ), ARRAY_A);
 
-    if ($mappings) {
-        // Debugging: Output the retrieved mappings
-        error_log("Retrieved mappings: " . print_r($mappings, true));
-        wp_send_json_success(['mappings' => $mappings]);
-    } else {
-        error_log("No mappings found for this profile.");
-        wp_send_json_error(['message' => 'No mappings found for this profile.']);
-    }
-}
-add_action('wp_ajax_load_profile_mappings', 'load_profile_mappings');
+//     if ($mappings) {
+//         // Debugging: Output the retrieved mappings
+//         error_log("Retrieved mappings: " . print_r($mappings, true));
+//         wp_send_json_success(['mappings' => $mappings]);
+//     } else {
+//         error_log("No mappings found for this profile.");
+//         wp_send_json_error(['message' => 'No mappings found for this profile.']);
+//     }
+// }
+// add_action('wp_ajax_load_profile_mappings', 'load_profile_mappings');
 
 // Handle AJAX request to save API mappings
 function save_api_mappings()
@@ -201,7 +199,7 @@ function save_api_mappings()
     error_log("Saving mappings for profile: " . $selected_profile);
     error_log("Mappings data: " . print_r($mappings_data, true));
 
-    // Clear existing mappings for the selected profile
+    // // Clear existing mappings for the selected profile
     $wpdb->delete($table_name, array('profile_name' => $selected_profile));
 
     // Extract mappings from data
@@ -209,7 +207,7 @@ function save_api_mappings()
 
     foreach ($api_mappings as $index => $mapping) {
         $api_command = isset($mapping['api_command']) ? sanitize_text_field($mapping['api_command']) : '';
-        $plan_code = isset($mapping['plan_code']) ? sanitize_text_field($mapping['plan_code']) : '';
+        // $plan_code = isset($mapping['plan_code']) ? sanitize_text_field($mapping['plan_code']) : '';
 
         // Debugging: Check parameters before serialization
         error_log("Parameters before serialization: " . print_r($mapping['parameters'], true));
@@ -219,17 +217,16 @@ function save_api_mappings()
 
         $sequence = isset($mapping['sequence']) ? intval($mapping['sequence']) : ($index + 1); // Ensure sequence starts from 1
 
-        if (!empty($api_command) && !empty($plan_code) && !empty($selected_profile)) { // Ensure profile name is provided
+        if (!empty($api_command) && !empty($selected_profile)) { // Ensure profile name is provided
             $wpdb->insert(
                 $table_name,
                 array(
                     'profile_name' => $selected_profile,
-                    'plan_code' => $plan_code,
                     'api_command' => $api_command,
                     'parameters' => $parameters,
                     'sequence' => $sequence,
                 ),
-                array('%s', '%s', '%s', '%s', '%d')
+                array('%s', '%s', '%s', '%d')
             );
         }
     }
