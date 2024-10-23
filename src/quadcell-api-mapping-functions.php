@@ -214,7 +214,10 @@ function save_api_mappings()
 
         // Ensure the parameters are an array before serializing
         $parameters = isset($mapping['parameters']) && is_array($mapping['parameters']) ? maybe_serialize(array_filter($mapping['parameters'])) : maybe_serialize([]);
-
+        $parametersArray = unserialize($parameters);
+        $parametersJson = json_encode($parametersArray);
+        // var_dump($parameters);
+        // die();
         $sequence = isset($mapping['sequence']) ? intval($mapping['sequence']) : ($index + 1); // Ensure sequence starts from 1
 
         if (!empty($api_command) && !empty($selected_profile)) { // Ensure profile name is provided
@@ -223,7 +226,7 @@ function save_api_mappings()
                 array(
                     'profile_name' => $selected_profile,
                     'api_command' => $api_command,
-                    'parameters' => $parameters,
+                    'parameters' => $parametersJson,
                     'sequence' => $sequence,
                 ),
                 array('%s', '%s', '%s', '%d')
