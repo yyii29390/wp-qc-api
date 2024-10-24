@@ -1,12 +1,16 @@
 jQuery(document).ready(function($) {
 
     // Function to add a new mapping row
-    function addMappingRow(selectedPlanCode = "") {
+    function addMappingRow(selectedPlanCode) {
         var table = $('#quadcell-api-plan-to-api-mappings-table tbody');
         var newIndex = table.find('tr').length;
         var newRow = '<tr data-id="" data-index="' + newIndex + '"><td><select name="api_mappings[' + newIndex + '][api_command]" class="api-command-select">';
         newRow += '<option value="">-</option>'; // Default blank selection
+        
         $.each(quadcellApiMapping.api_commands, function(command, fields) {
+            let defaultSelected = '';
+            // if(selectedPlanCode && selectedPlanCode.data.mapping[0].api_commands===command){defaultSelected='selected="selected"'}else{defaultSelected=''}
+            // console.log(selectedPlanCode)
             newRow += '<option value="' + command + '">' + command + '</option>';
         });
         // newRow += '</select></td><td><select name="api_mappings[' + newIndex + '][plan_code]" class="plan-code-select">';
@@ -14,6 +18,7 @@ jQuery(document).ready(function($) {
         // $.each(quadcellApiMapping.plan_codes, function(i, plan) {
         //     newRow += '<option value="' + plan.planCode + '" ' + (plan.planCode === selectedPlanCode ? 'selected' : '') + '>' + plan.planCode + '</option>';
         // });
+        $.each()
         newRow += '</select><div class="plan-code-info"></div></td><td><div class="api-parameters-container"></div></td><td><input type="number" name="api_mappings[' + newIndex + '][sequence]" value="' + (newIndex + 1) + '" class="sequence-input" min="1" /></td><td><button type="button" class="button move-up">Up</button><button type="button" class="button move-down">Down</button><button type="button" class="button remove-mapping">Remove</button></td></tr>';
         table.append(newRow);
     }
@@ -24,8 +29,9 @@ jQuery(document).ready(function($) {
     });
 
     // Handle profile selection and load mappings
-    $('#selected_profile').off('change').on('change', function() {
+    $('#selected_profile').on('change', function() {
         var profileName = $(this).val();
+        console.log("Profile selected:", profileName);
         $.post(quadcellApiMapping.ajax_url, {
             action: 'load_profile_mappings',
             profile_name: profileName,
@@ -55,7 +61,7 @@ jQuery(document).ready(function($) {
 
         var selectedProfile = $('#selected_profile').val(); // Capture the selected profile
         var formData = $(this).serializeArray(); // Serialize form data as an array
-console.log("formData",formData);
+
         // Convert serialized data to an object for easier manipulation
         var mappingsData = {
             selected_profile: selectedProfile,
@@ -63,35 +69,32 @@ console.log("formData",formData);
         };
       let timesOfLoop =0
         $.each(formData, function(_, field) {
-            var match = field.name.match(/^api_mappings\[(\d+)]\[(.+)]$/);
-    ;
-            if (match) {
-                var index = parseInt(match[1]);
-                var key = match[2]
+
+    ;function extractParameter(fieldName) {
+        const match = fieldName.match(/^api_mappings\[(\d+)]\[(\w+)](?:\[(\w+)])?/);
+        return match ? match.slice(1).filter(Boolean) : null;
+    }
+        matchResult = extractParameter(field.name)
+
+                var index = parseInt(matchResult[0]);
+                var key = matchResult[1]
                 if (!mappingsData.api_mappings[index] ) {
                     mappingsData.api_mappings[index] = {};
                 }
-                
-                
-                console.log("field",field);
                 // Ensure mappingsData.api_mappings has an array entry at the current index
-                console.log("match",match)
+                console.log("key",key)
                 if (key === 'api_command' || key === 'sequence') {
                     mappingsData.api_mappings[index][key] = field.value;
        
-                } 
-            }
-            else {
-                var paramMatch = field.name.match(/^api_mappings\[]\[parameters]\[(.+)]$/);
-                if (paramMatch) {
-                    var index = 0;
-                    var paramKey = paramMatch[1];
-                    if (!mappingsData.api_mappings[index].parameters) {
-                        mappingsData.api_mappings[index].parameters = {};
-                    }
-                    mappingsData.api_mappings[index].parameters[paramKey]= field.value;
-                            
-                }}
+                } else if(key === 'parameters'){
+                        var paramKey = matchResult[2];
+                        if (!mappingsData.api_mappings[index].parameters) {
+                            mappingsData.api_mappings[index].parameters = {};
+                        }
+                        mappingsData.api_mappings[index].parameters[paramKey]= field.value;
+                                
+                };
+            
             
         });
 
@@ -183,7 +186,8 @@ console.log("formData",formData);
     $(document).on('change', '.api-command-select', function() {
         var command = $(this).val();
         var parametersContainer = $(this).closest('tr').find('.api-parameters-container');
-
+        var apiSequence = parseInt($(this).closest('tr').find('.sequence-input').val())-1;
+        console.log(apiSequence)
         // Fetch command parameters excluding IMSI, ICCID, and MSISDN
         parametersContainer.empty();
         if (quadcellApiMapping.api_commands[command]) {
@@ -191,13 +195,13 @@ console.log("formData",formData);
                 if (['imsi', 'iccid', 'msisdn', 'planCode'].indexOf(field) === -1) {
                     var fieldHTML = '<label>' + field + ':</label>';
                     if (field === 'planCode') {
-                        fieldHTML += '<select name="api_mappings[][parameters][' + field + ']">';
+                        fieldHTML += '<select name="api_mappings['+apiSequence+'][parameters][' + field + ']">';
                         $.each(quadcellApiMapping.plan_codes, function(i, plan) {
                             fieldHTML += '<option value="' + plan.planCode + '">' + plan.planCode + '</option>';
                         });
                         fieldHTML += '</select>';
                     } else {
-                        fieldHTML += '<input type="' + (properties.type === 'int' ? 'number' : 'text') + '" name="api_mappings[][parameters][' + field + ']" value="">';
+                        fieldHTML += '<input type="' + (properties.type === 'int' ? 'number' : 'text') + '" name="api_mappings['+apiSequence+'][parameters][' + field + ']" value="">';
                     }
                     parametersContainer.append('<div>' + fieldHTML + '</div>');
                 }

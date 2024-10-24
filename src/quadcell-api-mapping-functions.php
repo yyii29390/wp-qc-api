@@ -68,42 +68,41 @@ function quadcell_api_plan_to_api_section()
     $selected_profile = isset($_POST['selected_profile']) ? sanitize_text_field($_POST['selected_profile']) : (!empty($profiles) ? $profiles[0]['profile_name'] : '');
 
     ?>
-<h3>Manage API Command Profiles</h3>
-<form method="post" id="quadcell-api-profile-form">
-    <label for="profile_name">Profile Name:</label>
-    <select name="selected_profile" id="selected_profile">
-        <option value="">-</option> <!-- Default blank option -->
-        <?php foreach ($profiles as $profile): ?>
-        <option value="<?php echo esc_attr($profile['profile_name']); ?>"
-            <?php selected($selected_profile, $profile['profile_name']); ?>>
-            <?php echo esc_html($profile['profile_name']); ?>
-        </option>
-        <?php endforeach; ?>
-    </select>
-    <button type="button" class="button" id="add-new-profile">Add New Profile</button>
-</form>
-
-<div id="quadcell-api-plan-to-api-mappings-container">
-    <form method="post" id="quadcell-api-mappings-form">
-        <!-- Table structure for API mappings -->
-        <table class="form-table" id="quadcell-api-plan-to-api-mappings-table">
-            <thead>
-                <tr valign="top">
-                    <th scope="row">API Command</th>
-                    <th scope="row">Parameters</th>
-                    <th scope="row" width="10px">Sequence</th>
-                    <th scope="row">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Dynamically filled using JavaScript -->
-            </tbody>
-        </table>
-        <button type="button" class="button" id="add-plan-to-api-mapping">Add Mapping</button>
-        <input type="submit" class="button button-primary" value="Save Mappings">
+    <h3>Manage API Command Profiles</h3>
+    <form method="post" id="quadcell-api-profile-form">
+        <label for="profile_name">Profile Name:</label>
+        <select name="selected_profile" id="selected_profile">
+            <option value="">-</option> <!-- Default blank option -->
+            <?php foreach ($profiles as $profile): ?>
+                <option value="<?php echo esc_attr($profile['profile_name']); ?>" <?php selected($selected_profile, $profile['profile_name']); ?>>
+                    <?php echo esc_html($profile['profile_name']); ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+        <button type="button" class="button" id="add-new-profile">Add New Profile</button>
     </form>
-</div>
-<?php
+
+    <div id="quadcell-api-plan-to-api-mappings-container">
+        <form method="post" id="quadcell-api-mappings-form">
+            <!-- Table structure for API mappings -->
+            <table class="form-table" id="quadcell-api-plan-to-api-mappings-table">
+                <thead>
+                    <tr valign="top">
+                        <th scope="row">API Command</th>
+                        <th scope="row">Parameters</th>
+                        <th scope="row" width="10px">Sequence</th>
+                        <th scope="row">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Dynamically filled using JavaScript -->
+                </tbody>
+            </table>
+            <button type="button" class="button" id="add-plan-to-api-mapping">Add Mapping</button>
+            <input type="submit" class="button button-primary" value="Save Mappings">
+        </form>
+    </div>
+    <?php
 }
 
 // Handle AJAX request to fetch plan code information
@@ -154,32 +153,34 @@ function add_new_profile()
 add_action('wp_ajax_add_new_profile', 'add_new_profile');
 
 // Handle AJAX request to load profile mappings
-// function load_profile_mappings()
-// {
-//     check_ajax_referer('fetch_plan_code_info_nonce', 'nonce');
+function load_profile_mappings()
+{
+    check_ajax_referer('fetch_plan_code_info_nonce', 'nonce');
 
-//     global $wpdb;
-//     $profile_name = sanitize_text_field($_POST['profile_name']);
-//     $table_name = $wpdb->prefix . 'qc_api_mappings';
+    global $wpdb;
+    $profile_name = sanitize_text_field($_POST['profile_name']);
+    $table_name = $wpdb->prefix . 'qc_api_mappings';
 
-//     // Debugging: Check the profile name being queried
-//     error_log("Loading mappings for profile: " . $profile_name);
+    // Debugging: Check the profile name being queried
+    error_log("Loading mappings for profile: " . $profile_name);
 
-//     $mappings = $wpdb->get_results($wpdb->prepare(
-//         "SELECT * FROM $table_name WHERE profile_name = %s ORDER BY sequence ASC",
-//         $profile_name
-//     ), ARRAY_A);
+    $mappings = $wpdb->get_results($wpdb->prepare(
+        "SELECT * FROM $table_name WHERE profile_name = %s ORDER BY sequence ASC",
+        $profile_name
+    ), ARRAY_A);
 
-//     if ($mappings) {
-//         // Debugging: Output the retrieved mappings
-//         error_log("Retrieved mappings: " . print_r($mappings, true));
-//         wp_send_json_success(['mappings' => $mappings]);
-//     } else {
-//         error_log("No mappings found for this profile.");
-//         wp_send_json_error(['message' => 'No mappings found for this profile.']);
-//     }
-// }
-// add_action('wp_ajax_load_profile_mappings', 'load_profile_mappings');
+    if ($mappings) {
+        // Debugging: Output the retrieved mappings
+        error_log("Retrieved mappings: " . print_r($mappings, true));
+        wp_send_json_success(['mappings' => $mappings]);
+        var_dump($mappings);
+        die();
+    } else {
+        error_log("No mappings found for this profile.");
+        wp_send_json_error(['message' => 'No mappings found for this profile.']);
+    }
+}
+add_action('wp_ajax_load_profile_mappings', 'load_profile_mappings');
 
 // Handle AJAX request to save API mappings
 function save_api_mappings()
