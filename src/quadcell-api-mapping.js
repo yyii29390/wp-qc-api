@@ -1,28 +1,78 @@
 jQuery(document).ready(function($) {
 
     // Function to add a new mapping row
-    function addMappingRow(selectedPlanCode) {
+    function addMappingRow(exsistingData) {
+        
         var table = $('#quadcell-api-plan-to-api-mappings-table tbody');
         var newIndex = table.find('tr').length;
-        var newRow = '<tr data-id="" data-index="' + newIndex + '"><td><select name="api_mappings[' + newIndex + '][api_command]" class="api-command-select">';
-        newRow += '<option value="">-</option>'; // Default blank selection
         
+        if(exsistingData){
+            console.log("exsistingData:",exsistingData);
+            var prameter = prametersAPI(exsistingData.api_command,exsistingData.parameters,exsistingData.sequence);
+            var newRow = '<tr data-id="" data-index="' + exsistingData.sequence + '"><td><select name="api_mappings[' + newIndex + '][api_command]" class="api-command-select">';
+            newRow += '<option value="">-</option>'; // Default blank selection
+            console.log("quadcellApiMapping.api_commands:",quadcellApiMapping.api_commands);
+            $.each(quadcellApiMapping.api_commands, function(command, fields) {
+                if (exsistingData.api_command==command){newRow += '<option value="' + command + '" selected>' + command + '</option>';}else{newRow += '<option value="' + command + '">' + command + '</option>';}
+            });
+
+            newRow += '</select><div class="plan-code-info"></div></td><td><div class="api-parameters-container">'+prameter+'</div></td><td><input type="number" name="api_mappings[' + newIndex + '][sequence]" value="' + (newIndex + 1) + '" class="sequence-input" min="1" /></td><td><button type="button" class="button move-up">Up</button><button type="button" class="button move-down">Down</button><button type="button" class="button remove-mapping">Remove</button></td></tr>';
+            
+            }else{
+            var newRow = '<tr data-id="" data-index="' + newIndex + '"><td><select name="api_mappings[' + newIndex + '][api_command]" class="api-command-select">';
+        newRow += '<option value="">-</option>'; // Default blank selection
         $.each(quadcellApiMapping.api_commands, function(command, fields) {
             let defaultSelected = '';
-            // if(selectedPlanCode && selectedPlanCode.data.mapping[0].api_commands===command){defaultSelected='selected="selected"'}else{defaultSelected=''}
-            // console.log(selectedPlanCode)
+            // if(exsistingData && exsistingData.data.mapping[0].api_commands===command){defaultSelected='selected="selected"'}else{defaultSelected=''}
+            // console.log(exsistingData)
             newRow += '<option value="' + command + '">' + command + '</option>';
+            newRow += '</select><div class="plan-code-info"></div></td><td><div class="api-parameters-container"></div></td><td><input type="number" name="api_mappings[' + newIndex + '][sequence]" value="' + (newIndex + 1) + '" class="sequence-input" min="1" /></td><td><button type="button" class="button move-up">Up</button><button type="button" class="button move-down">Down</button><button type="button" class="button remove-mapping">Remove</button></td></tr>';
         });
         // newRow += '</select></td><td><select name="api_mappings[' + newIndex + '][plan_code]" class="plan-code-select">';
-        newRow += '<option value="">-</option>'; // Default blank selection
+   
         // $.each(quadcellApiMapping.plan_codes, function(i, plan) {
-        //     newRow += '<option value="' + plan.planCode + '" ' + (plan.planCode === selectedPlanCode ? 'selected' : '') + '>' + plan.planCode + '</option>';
+        //     newRow += '<option value="' + plan.planCode + '" ' + (plan.planCode === exsistingData ? 'selected' : '') + '>' + plan.planCode + '</option>';
         // });
-        $.each()
-        newRow += '</select><div class="plan-code-info"></div></td><td><div class="api-parameters-container"></div></td><td><input type="number" name="api_mappings[' + newIndex + '][sequence]" value="' + (newIndex + 1) + '" class="sequence-input" min="1" /></td><td><button type="button" class="button move-up">Up</button><button type="button" class="button move-down">Down</button><button type="button" class="button remove-mapping">Remove</button></td></tr>';
-        table.append(newRow);
+        
+            
     }
+    table.append(newRow);
+        
+    }
+    function prametersAPI(command,parameters,apiSequence){
+        var fieldHTML =""
+        encodePram = JSON.parse(parameters);
+        sequence = apiSequence-1;
+        // Fetch command parameters excluding IMSI, ICCID, and MSISDN
+        let combinedObj = {};
+        for (let key1 in quadcellApiMapping.api_commands[command]){
+            for (let key2 in encodePram) {
+                if (key1 === key2) {
+                    combinedObj[key2] = encodePram[key2];
+                }
+                }
+        }
+       
+        
+        if (combinedObj) {
+            $.each(combinedObj, function(field, value) {
+                    fieldHTML += '<div><label>' + field + ':</label>';
+                if(encodePram){
+                   fieldHTML += '<input type="' + (value.type === 'int' ? 'number' : 'text') + '" name="api_mappings['+sequence+'][parameters][' + field + ']" value="'+value+'"></div>';
+                }else{
+                    fieldHTML += '<input type="' + (value.type === 'int' ? 'number' : 'text') + '" name="api_mappings['+sequence+'][parameters][' + field + ']" value=""></div>';
 
+                }
+          
+                
+                //     }
+                //     ;
+                // }
+            });
+        }
+        console.log("fieldHTML:",fieldHTML);
+        return fieldHTML
+    }
     // Bind event for adding new mapping, ensuring it is only bound once
     $('#add-plan-to-api-mapping').off('click').on('click', function() {
         addMappingRow(); // Adds a new row with a blank selection for plan code
@@ -37,11 +87,13 @@ jQuery(document).ready(function($) {
             profile_name: profileName,
             nonce: quadcellApiMapping.nonce
         }, function(response) {
+         
             if (response.success) {
                 $('#quadcell-api-plan-to-api-mappings-table tbody').empty(); // Clear existing rows
                 $.each(response.data.mappings, function(index, mapping) {
                     // Load each mapping row with the correct plan code selected
-                    addMappingRow(mapping.plan_code); // Pass the selected plan code
+   
+                    addMappingRow(mapping); // Pass the selected plan code
                 });
             } else {
                 alert('Error loading profile mappings: ' + response.data.message);
@@ -82,7 +134,7 @@ jQuery(document).ready(function($) {
                     mappingsData.api_mappings[index] = {};
                 }
                 // Ensure mappingsData.api_mappings has an array entry at the current index
-                console.log("key",key)
+    
                 if (key === 'api_command' || key === 'sequence') {
                     mappingsData.api_mappings[index][key] = field.value;
        
@@ -100,7 +152,7 @@ jQuery(document).ready(function($) {
 
         // Debugging: Display the mappings data to verify
         
-        console.log("Mappings Data before sending:", mappingsData);
+   
 
         // Send formatted data to the server
         $.post(quadcellApiMapping.ajax_url, {
@@ -184,15 +236,14 @@ jQuery(document).ready(function($) {
 
     // Fetch API command parameters on command change
     $(document).on('change', '.api-command-select', function() {
+
         var command = $(this).val();
         var parametersContainer = $(this).closest('tr').find('.api-parameters-container');
         var apiSequence = parseInt($(this).closest('tr').find('.sequence-input').val())-1;
-        console.log(apiSequence)
-        // Fetch command parameters excluding IMSI, ICCID, and MSISDN
         parametersContainer.empty();
         if (quadcellApiMapping.api_commands[command]) {
             $.each(quadcellApiMapping.api_commands[command], function(field, properties) {
-                if (['imsi', 'iccid', 'msisdn', 'planCode'].indexOf(field) === -1) {
+                if (['imsi', 'iccid', 'msisdn','planCode'].indexOf(field) === -1) {
                     var fieldHTML = '<label>' + field + ':</label>';
                     if (field === 'planCode') {
                         fieldHTML += '<select name="api_mappings['+apiSequence+'][parameters][' + field + ']">';
@@ -201,12 +252,22 @@ jQuery(document).ready(function($) {
                         });
                         fieldHTML += '</select>';
                     } else {
-                        fieldHTML += '<input type="' + (properties.type === 'int' ? 'number' : 'text') + '" name="api_mappings['+apiSequence+'][parameters][' + field + ']" value="">';
+                // if(paramters){
+                //    fieldHTML += '<input type="' + (properties.type === 'int' ? 'number' : 'text') + '" name="api_mappings['+apiSequence+'][parameters][' + field + ']" value="'+paramters[field]+'">';
+                // }else{
+                    fieldHTML += '<input type="' + (properties.type === 'int' ? 'number' : 'text') + '" name="api_mappings['+apiSequence+'][parameters][' + field + ']" value="">';
+
+                // }
                     }
+                    ;
                     parametersContainer.append('<div>' + fieldHTML + '</div>');
                 }
+                
+                
             });
         }
+
+        
     });
 
     // Sortable rows for sequence management
