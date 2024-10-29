@@ -18,7 +18,7 @@ jQuery(document).ready(function($) {
         var data = {
             action: 'add_package_code',
             applicable_IMSI: $('#applicable_IMSI').val(),        
-            package_Code: $('#package_Code').val(),
+            package_code: $('#package_code').val(),
             preset_Data_Volume: $('#preset_Data_Volume').val(),
             validity_Mode: $('#validity_Mode').val(),
             FUP_Mode: $('#FUP_Mode').val(),
@@ -32,7 +32,7 @@ jQuery(document).ready(function($) {
                 alert(response.data.message);
                 loadPackageCodeRecords();
                 $('#applicable_IMSI').val("");
-                $('#package_Code').val("");
+                $('#package_code').val("");
                 $('#preset_Data_Volume').val("");
                 $('#validity_Mode').val("") ;
                 $('#FUP_Mode').val("") ;
@@ -68,7 +68,7 @@ jQuery(document).ready(function($) {
         var id = $(this).data('id');
         var row = $(this).closest('tr');
         var applicable_IMSI = row.find('td').eq(1).text();
-        var package_Code = row.find('td').eq(2).text();
+        var package_code = row.find('td').eq(2).text();
         var preset_Data_Volume = row.find('td').eq(3).text();
         var validity_Mode = row.find('td').eq(4).text();
         var FUP_Mode = row.find('td').eq(5).text();
@@ -77,7 +77,8 @@ jQuery(document).ready(function($) {
 
 
         $('#applicable_IMSI').val(applicable_IMSI);
-        $('#package_Code').val(package_Code);
+        $('#package_code').val(package_code);
+        console.log(package_code);
     $('#preset_Data_Volume').val(preset_Data_Volume);
         $('#validity_Mode').val(validity_Mode);
         $('#FUP_Mode').val(FUP_Mode);
@@ -96,7 +97,7 @@ jQuery(document).ready(function($) {
                 action: 'update_package_code',
                 id: id,
                 applicable_IMSI: $('#applicable_IMSI').val(),
-                package_Code: $('#package_Code').val(),
+                package_code: $('#package_code').val(),
                 preset_Data_Volume: $('#preset_Data_Volume').val(),
                 validity_Mode: $('#validity_Mode').val(),
                 FUP_Mode: $('#FUP_Mode').val(),
@@ -108,13 +109,13 @@ jQuery(document).ready(function($) {
                 if (response.success) {
                     alert(response.data.message);
                     // row.find('td').eq(1).text(data.applicable_IMSI);
-                    // row.find('td').eq(2).text(data.package_Code);
+                    // row.find('td').eq(2).text(data.package_code);
                     // row.find('td').eq(3).text(data.roaming_Region);
                     // row.find('td').eq(4).text(data.mobile_Service);
                     // row.find('td').eq(5).text(data.roaming_Profile);
                     // row.find('td').eq(6).text(data.validity_Mode);
                     $('#applicable_IMSI').val("");
-                    $('#package_Code').val("");
+                    $('#package_code').val("");
                     $('#preset_Data_Volume').val("");
                     $('#validity_Mode').val("") ;
                     $('#FUP_Mode').val("") ;

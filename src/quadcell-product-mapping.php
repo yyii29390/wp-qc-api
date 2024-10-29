@@ -1,7 +1,7 @@
 <?pHp
 // Ensure this file is only accessed via WordPress
 defined('ABSPATH') or die('No script kiddies please!');
-
+add_action('wp_ajax_add_product_mapping', 'add_product_mapping');
 
 function quadcell_create_product_map_table()
 {
@@ -179,8 +179,25 @@ function load_product()
     //     wp_send_json_error(array('message' => 'No records found'), 404);
     // }
 }
+function add_product_mapping()
+{
+    if (isset($_POST['submit'])) {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'qc_product_mapping';
+        $data = array(
+            '$product' => sanitize_text_field($_POST['product']),
+            '$profile_id' => sanitize_text_field($_POST['profile_id'])
+        );
 
-
+        $format = array('%s', '%d');
+        if ($wpdb->insert($table_name, $data, $format)) {
+            wp_send_json_success(['message' => 'Mappings saved successfully.']);
+        } else {
+            wp_send_json_success(['message' => $wpdb + "- insert error"]);
+        }
+    }
+}
+;
 
 
 
@@ -194,35 +211,41 @@ function quadcell_api_product_mapping_section()
     ?>
 <h3>Product Mapping</h3>
 <table>
-
-    <th>
-        WC Product
-    </th>
-    <th>
-        <select>
-            <option value="">-</option>
-            <?php
+    <form method="post" id="product-map-form">
+        <th>
+            <label for="product">
+                WC Product
+            </label>
+        </th>
+        <th>
+            <select>
+                <option value="">-</option>
+                <?php
                 $args = array(
                     'status' => 'publish',
                 );
 
                 $products = wc_get_products($args);
+
                 foreach ($products as $product) {
+
                     echo '<option value="' . ($product->get_data())['id'] . '">' . ($product->get_data())['name'] . ($product->get_data())['sku'] . '</option>';
                 }
                 ?>
-        </select>
-    </th>
+            </select>
+        </th>
 
-    <th>
-        Profile
-    </th>
-    <th>
-        <select>
-            <option>
-                -
-            </option>
-            <?php
+        <th>
+            <label for="profile">
+                Profile
+            </label>
+        </th>
+        <th>
+            <select>
+                <option>
+                    -
+                </option>
+                <?php
                 global $wpdb;
                 $api_mappings_table = $wpdb->prefix . 'qc_api_mappings';
                 $profiles = $wpdb->get_results("SELECT DISTINCT profile_name FROM $api_mappings_table", ARRAY_A);
@@ -230,14 +253,14 @@ function quadcell_api_product_mapping_section()
                     echo '<option value="' . $profile['profile_name'] . '">' . $profile['profile_name'] . ($product->get_data())['sku'] . '</option>';
                 }
                 ?>
-        </select>
-    </th>
+            </select>
+        </th>
 
-    <th>
-        <button type="button" class="button">Add Processing</button>
-    </th>
-    </tr>
-
+        <th>
+            <button type="submit" class="button">Add Processing</button>
+        </th>
+        </tr>
+    </form>
 </table>
 <table class="widefat fixed" cellspacing="0">
     <thead>

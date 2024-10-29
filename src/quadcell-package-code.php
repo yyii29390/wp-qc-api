@@ -56,7 +56,7 @@ function add_package_code()
 
     $data = array(
         'applicable_IMSI' => sanitize_text_field($_POST['applicable_IMSI']),
-        'package_Code' => sanitize_text_field($_POST['package_Code']),
+        'package_code' => sanitize_text_field($_POST['package_code']),
         'preset_Data_Volume' => sanitize_text_field($_POST['preset_Data_Volume']),
         'validity_Mode' => sanitize_text_field($_POST['validity_Mode']),
         'FUP_Mode' => sanitize_text_field($_POST['FUP_Mode']),
@@ -103,7 +103,7 @@ function load_package_code()
             echo '<tr data-id="' . esc_attr($package_code['id']) . '">';
             echo '<td>' . esc_html($package_code['id']) . '</td>';
             echo '<td>' . esc_html($package_code['applicable_IMSI']) . '</td>';
-            echo '<td>' . esc_html($package_code['package_Code']) . '</td>';
+            echo '<td>' . esc_html($package_code['package_code']) . '</td>';
             echo '<td>' . esc_html($package_code['preset_Data_Volume']) . '</td>';
             echo '<td>' . esc_html($package_code['validity_Mode']) . '</td>';
             echo '<td>' . esc_html($package_code['FUP_Mode']) . '</td>';
@@ -130,7 +130,7 @@ function update_package_code()
     $id = intval($_POST['id']);
     $data = array(
         'applicable_IMSI' => sanitize_text_field($_POST['applicable_IMSI']),
-        'package_Code' => sanitize_text_field($_POST['package_Code']),
+        'package_Code' => sanitize_text_field($_POST['package_code']),
         'preset_Data_Volume' => sanitize_text_field($_POST['preset_Data_Volume']),
         'validity_Mode' => sanitize_text_field($_POST['validity_Mode']),
         'FUP_Mode' => sanitize_text_field($_POST['FUP_Mode']),

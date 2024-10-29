@@ -15,4 +15,7 @@ console.log("product mapping js start")
 
     // Load SIM records on page load
     loadProducts();
+    $('#product-map-form').on('submit', function(e) {
+        e.preventDefault();
+    });
 })

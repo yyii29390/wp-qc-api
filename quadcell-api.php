@@ -103,7 +103,7 @@ function quadcell_api_settings_page()
                 class="nav-tab <?php echo get_current_tab() == 'product_mapping' ? 'nav-tab-active' : ''; ?>">Product
                 Mapping</a>
             <a href="?page=quadcell-api-settings&tab=plan_to_api"
-                class="nav-tab <?php echo get_current_tab() == 'plan_to_api' ? 'nav-tab-active' : ''; ?>">Plan to API</a>
+                class="nav-tab <?php echo get_current_tab() == 'plan_to_api' ? 'nav-tab-active' : ''; ?>">API Profile</a>
             <a href="?page=quadcell-api-settings&tab=order_processing"
                 class="nav-tab <?php echo get_current_tab() == 'order_processing' ? 'nav-tab-active' : ''; ?>">Order
                 Processing</a>
@@ -518,6 +518,7 @@ function quadcell_api_mapping_enqueue_scripts()
         'nonce' => wp_create_nonce('fetch_plan_code_info_nonce'),
         'api_commands' => $api_commands,  // Pass the API commands to JS
         'plan_codes' => $wpdb->get_results("SELECT planCode FROM {$wpdb->prefix}qc_plancode", ARRAY_A),
+        'package_code' => $wpdb->get_results("SELECT package_code FROM {$wpdb->prefix}qc_package_code", ARRAY_A)
     ));
 }
 add_action('admin_enqueue_scripts', 'quadcell_api_mapping_enqueue_scripts');
