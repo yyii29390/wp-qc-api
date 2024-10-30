@@ -52,7 +52,6 @@ function create_qc_api_mapping_table()
     require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
     dbDelta($sql);
 }
-register_activation_hook(__FILE__, 'create_qc_api_mapping_table');
 
 // Function to display the API mapping section
 function quadcell_api_plan_to_api_section()

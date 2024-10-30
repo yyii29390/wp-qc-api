@@ -3,7 +3,7 @@
  * Plugin Name: Quadcell API Plugin
  * Plugin URI: http://localhost/quadcell-api
  * Description: Quadcell API plugin.
- * Version: 1.3.1.23
+ * Version: 1.3.1.27
  * Author: Quadcell Communications Ltd
  * Author URI: http://www.quadcell.com
  * License: GPL2
@@ -79,7 +79,7 @@ function quadcell_api_register_settings()
         'type' => 'array',
         'default' => array(),
     ));
-    register_setting('quadcell-api-product-mapping-group', 'quadcell_api_product_mappings', array(
+    register_setting(' ', 'quadcell_api_product_mappings', array(
         'type' => 'array',
         'default' => array(),
     ));

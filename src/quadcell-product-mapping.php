@@ -13,10 +13,9 @@ function quadcell_create_product_map_table()
 
     $sql = "CREATE TABLE $table_name (
         id mediumint(9) NOT NULL AUTO_INCREMENT,
-        product varchar(100) NOT NULL,
-        profile_id int NOT NULL,
+        product_name varchar(100) NOT NULL,
+        profile_name varchar(100) NOT NULL,
         PRIMARY KEY  (id)
-       FOREIGN KEY (profile_id) REFERENCES wp_qc_api_mappings(id)
     ) $charset_collate;";
 
     require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
@@ -35,7 +34,6 @@ function quadcell_create_product_map_table()
         error_log("Table created successfully: $table_name");
     }
 }
-
 // add_action('init', 'load_product');
 function load_product()
 {
@@ -179,25 +177,25 @@ function load_product()
     //     wp_send_json_error(array('message' => 'No records found'), 404);
     // }
 }
-function add_product_mapping()
-{
-    if (isset($_POST['submit'])) {
-        global $wpdb;
-        $table_name = $wpdb->prefix . 'qc_product_mapping';
-        $data = array(
-            '$product' => sanitize_text_field($_POST['product']),
-            '$profile_id' => sanitize_text_field($_POST['profile_id'])
-        );
+// function add_product_mapping()
+// {
+//     if (isset($_POST['submit'])) {
+//         global $wpdb;
+//         $table_name = $wpdb->prefix . 'qc_product_map';
+//         $data = array(
+//             '$product' => sanitize_text_field($_POST['product']),
+//             '$profile_id' => sanitize_text_field($_POST['profile_id'])
+//         );
 
-        $format = array('%s', '%d');
-        if ($wpdb->insert($table_name, $data, $format)) {
-            wp_send_json_success(['message' => 'Mappings saved successfully.']);
-        } else {
-            wp_send_json_success(['message' => $wpdb + "- insert error"]);
-        }
-    }
-}
-;
+//         $format = array('%s', '%d');
+//         if ($wpdb->insert($table_name, $data, $format)) {
+//             wp_send_json_success(['message' => 'Mappings saved successfully.']);
+//         } else {
+//             wp_send_json_success(['message' => $wpdb + "- insert error"]);
+//         }
+//     }
+// }
+// ;
 
 
 
@@ -209,86 +207,125 @@ function add_product_mapping()
 function quadcell_api_product_mapping_section()
 {
     ?>
-<h3>Product Mapping</h3>
-<table>
-    <form method="post" id="product-map-form">
-        <th>
-            <label for="product">
-                WC Product
-            </label>
-        </th>
-        <th>
-            <select>
-                <option value="">-</option>
-                <?php
-                $args = array(
-                    'status' => 'publish',
-                );
-
-                $products = wc_get_products($args);
-
-                foreach ($products as $product) {
-
-                    echo '<option value="' . ($product->get_data())['id'] . '">' . ($product->get_data())['name'] . ($product->get_data())['sku'] . '</option>';
-                }
-                ?>
-            </select>
-        </th>
-
-        <th>
-            <label for="profile">
-                Profile
-            </label>
-        </th>
-        <th>
-            <select>
-                <option>
-                    -
-                </option>
-                <?php
-                global $wpdb;
-                $api_mappings_table = $wpdb->prefix . 'qc_api_mappings';
-                $profiles = $wpdb->get_results("SELECT DISTINCT profile_name FROM $api_mappings_table", ARRAY_A);
-                foreach ($profiles as $profile) {
-                    echo '<option value="' . $profile['profile_name'] . '">' . $profile['profile_name'] . ($product->get_data())['sku'] . '</option>';
-                }
-                ?>
-            </select>
-        </th>
-
-        <th>
-            <button type="submit" class="button">Add Processing</button>
-        </th>
-        </tr>
     </form>
-</table>
-<table class="widefat fixed" cellspacing="0">
-    <thead>
-        <tr>
-            <th>id</th>
-            <th>Product</th>
-            <th>Profile</th>
-        </tr>
-    </thead>
+    <h3>Product Mapping</h3>
+    <div>
+        <form id="product-map-form" method="post">
+            <th>
+                <label for="product_name">
+                    WC Product
+                </label>
+            </th>
+            <th>
+                <select name="product_name" id="product_name">
+                    <option value="">-</option>
+                    <?php
+                    $args = array(
+                        'status' => 'publish',
+                    );
 
-</table>
+                    $products = wc_get_products($args);
 
-<div id="product-option">1324</div>
-<?php
+                    foreach ($products as $product) {
+
+                        echo '<option value="' . ($product->get_data())['id'] . "_" . ($product->get_data())['name'] . ($product->get_data())['sku'] . '">' . ($product->get_data())['id'] . "_" . ($product->get_data())['name'] . ($product->get_data())['sku'] . '</option>';
+                    }
+                    ?>
+                </select>
+            </th>
+
+            <th>
+                <label for="profile_name">
+                    Profile
+                </label>
+            </th>
+            <th>
+                <select name="profile_name" id="profile_name">
+                    <option>
+                        -
+                    </option>
+                    <?php
+                    global $wpdb;
+                    $api_mappings_table = $wpdb->prefix . 'qc_api_mappings';
+                    $profiles = $wpdb->get_results("SELECT DISTINCT profile_name FROM $api_mappings_table", ARRAY_A);
+                    foreach ($profiles as $profile) {
+                        echo '<option value="' . $profile['profile_name'] . '">' . $profile['profile_name'] . ($product->get_data())['sku'] . '</option>';
+                    }
+                    ?>
+                </select>
+            </th>
+
+            <th>
+                <input type="submit" class="button button-primary" value="Add Processing">
+                </tr>
+
+        </form>
+    </div>
+    <table class="widefat fixed" cellspacing="0">
+        <thead>
+            <tr>
+                <th>id</th>
+                <th>Product</th>
+                <th>Profile</th>
+            </tr>
+        </thead>
+
+    </table>
+
+    <div id="product-option">1324</div>
+    <?php
 }
 
+function save_product_mapping()
+{
+    global $wpdb;
 
-// function quadcell_products_scripts()
-// {
 
-//     wp_enqueue_script('jquery');
-//     // var_dump("test");
-//     // die();
-//     wp_enqueue_script('quadcell_products', plugin_dir_url(__FILE__) . 'quadcell-product-mapping.js', array('jquery'), null, true);
-//     wp_localize_script('quadcell_products', 'quadcellProducts', array(
-//         'ajax_url' => admin_url('admin-ajax.php'),
-//         'nonce' => wp_create_nonce('quadcell_product'),
-//     ));
-// }
-// add_action('admin_enqueue_scripts', 'quadcell_products_scripts')
-?>
+    $table_name = $wpdb->prefix . 'qc_product_map';
+    $data = array(
+        'product_name' => sanitize_text_field($_POST['product_name']),
+        'profile_name' => sanitize_text_field($_POST['profile_name'])
+    );
+    $format = array('%s', '%s');
+    if ($wpdb->insert($table_name, $data, $format)) {
+        wp_send_json_success(['message' => 'Mappings saved successfully.']);
+    } else {
+        wp_send_json_success(['message' => $wpdb + "- insert error"]);
+    }
+}
+add_action('wp_ajax_save_product_mapping', 'save_product_mapping');
+
+function load_product_mapping()
+{
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'qc_product_map';
+    $jsonResults = $wpdb->get_results("SELECT * FROM $table_name", ARRAY_A);
+    $results = json_encode($jsonResults);
+    foreach ($jsonResults as $result) {
+
+        ?>
+
+        <tr>
+            <td><?php echo $result['id']; ?></td>
+            <td><?php echo $result['product_name']; ?></td>
+            <td><?php echo $result['profile_name']; ?></td>
+        </tr>
+        <?php
+
+    }
+
+}
+add_action('wp_ajax_load_product_mapping', 'load_product_mapping');
+function quadcell_products_scripts()
+{
+
+    wp_enqueue_script('jquery');
+
+    wp_enqueue_script('quadcell_products', plugin_dir_url(__FILE__) . 'quadcell-product-mapping.js', array('jquery'), null, true);
+    wp_localize_script('quadcell_products', 'quadcellProducts', array(
+        'ajax_url' => admin_url('admin-ajax.php'),
+        'nonce' => wp_create_nonce('quadcell_product'),
+    ));
+}
+add_action('admin_enqueue_scripts', 'quadcell_products_scripts')
+    ?>

@@ -7,6 +7,7 @@ jQuery(document).ready(function($) {
         var newIndex = table.find('tr').length;
         
         if(exsistingData){
+
        
   
             var prameter = prametersAPI(exsistingData.api_command,exsistingData.parameters,exsistingData.sequence);
@@ -136,7 +137,7 @@ jQuery(document).ready(function($) {
 
         var selectedProfile = $('#selected_profile').val(); // Capture the selected profile
         var formData = $(this).serializeArray(); // Serialize form data as an array
-     
+     console.log(formData)
         // Convert serialized data to an object for easier manipulation
         var mappingsData = {
             selected_profile: selectedProfile,

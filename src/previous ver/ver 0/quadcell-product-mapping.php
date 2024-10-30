@@ -207,6 +207,8 @@ function quadcell_api_product_mapping_section()
                 );
 
                 $products = wc_get_products($args);
+                var_dump($products);
+                die();
                 foreach ($products as $product) {
                     echo '<option value="' . ($product->get_data())['id'] . '">' . ($product->get_data())['name'] . ($product->get_data())['sku'] . '</option>';
                 }
