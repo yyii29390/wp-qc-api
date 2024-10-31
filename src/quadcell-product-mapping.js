@@ -17,13 +17,15 @@ console.log("product mapping js start")
     // loadProducts();
     function loadProductsMapping() {
         $.get(quadcellProducts.ajax_url, { action: 'load_product_mapping' }, function(response) {
+            console.log(response)
             if (response.success) {
-                $('#product-option').html(response.data.html);
+                $('#product-map-table-body').html(response.data.html);
             } else {
                 alert('Error: ' + response.data.message);
             }
         });
     }
+    loadProductsMapping() 
     $('#product-map-form').on('submit', function(e) {
         console.log("product mapping js form submit")
         e.preventDefault();
@@ -40,7 +42,9 @@ console.log("product mapping js start")
             console.log(response)
             if (response.success) {
                 alert('Product mapping updated successfully.');
-                loadProductsMapping() 
+                loadProductsMapping()
+                $('#default-product-option').prop('selected', true);
+                $('#default-profile-option').prop('selected', true);
             } else {
                 alert('Error: ' + response.data.message);
             }

@@ -204,12 +204,63 @@ function load_product()
 
 
 // add_action('wp_ajax_nopriv_load_product', 'load_product');
+function save_product_mapping()
+{
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'qc_product_map';
+    $data = array(
+        'product_name' => sanitize_text_field($_POST['product_name']),
+        'profile_name' => sanitize_text_field($_POST['profile_name'])
+    );
+    $format = array('%s', '%s');
+    if ($wpdb->insert($table_name, $data, $format)) {
+        wp_send_json_success(['message' => 'Mappings saved successfully.']);
+    } else {
+        wp_send_json_success(['message' => $wpdb + "- insert error"]);
+    }
+}
+add_action('wp_ajax_save_product_mapping', 'save_product_mapping');
+
+function load_product_mapping()
+{
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'qc_product_map';
+    $jsonResults = $wpdb->get_results("SELECT * FROM $table_name", ARRAY_A);
+
+    if ($jsonResults) {
+        ob_start();
+        foreach ($jsonResults as $result) {
+
+            echo '<tr id="product-map-' . esc_attr($result['id']) . '">';
+            echo '<td id="' . esc_attr($result['id']) . '">' . esc_attr($result['id']) . '</td>';
+            echo '<td id="' . esc_attr($result['product_name']) . '">' . esc_attr($result['product_name']) . '</td>';
+            echo '<td id="' . esc_attr($result['profile_name']) . '">' . esc_attr($result['profile_name']) . '</td>';
+
+            echo '<td><input type="submit" id="edit-product-map-' . esc_attr($result['id']) . '" class="button button-primary" value="Edit">
+                <button id="del-product-map-' . esc_attr($result['id']) . '"  class="button button-primary">delete</button>
+            </td>
+            </tr>';
+
+        }
+        $html = ob_get_clean();
+        wp_send_json_success(array('html' => $html));
+    } else {
+        // Handle case where no results are found
+
+        wp_send_json_error(array('message' => 'No records found'), 404);
+
+    }
+
+}
+add_action('wp_ajax_load_product_mapping', 'load_product_mapping');
+
+
 function quadcell_api_product_mapping_section()
 {
     ?>
     </form>
     <h3>Product Mapping</h3>
-    <div>
+    <div style="margin-bottom:10px">
         <form id="product-map-form" method="post">
             <th>
                 <label for="product_name">
@@ -218,7 +269,7 @@ function quadcell_api_product_mapping_section()
             </th>
             <th>
                 <select name="product_name" id="product_name">
-                    <option value="">-</option>
+                    <option id="default-product-option" value="">-</option>
                     <?php
                     $args = array(
                         'status' => 'publish',
@@ -241,7 +292,7 @@ function quadcell_api_product_mapping_section()
             </th>
             <th>
                 <select name="profile_name" id="profile_name">
-                    <option>
+                    <option id="default-profile-option">
                         -
                     </option>
                     <?php
@@ -267,61 +318,31 @@ function quadcell_api_product_mapping_section()
                 <th>id</th>
                 <th>Product</th>
                 <th>Profile</th>
+                <th>Action</th>
             </tr>
         </thead>
+        <tbody id="product-map-table-body">
+            <?php ?>
+        </tbody>
 
     </table>
 
-    <div id="product-option">1324</div>
+
     <?php
 }
 
-function save_product_mapping()
-{
-    global $wpdb;
-
-
-    $table_name = $wpdb->prefix . 'qc_product_map';
-    $data = array(
-        'product_name' => sanitize_text_field($_POST['product_name']),
-        'profile_name' => sanitize_text_field($_POST['profile_name'])
-    );
-    $format = array('%s', '%s');
-    if ($wpdb->insert($table_name, $data, $format)) {
-        wp_send_json_success(['message' => 'Mappings saved successfully.']);
-    } else {
-        wp_send_json_success(['message' => $wpdb + "- insert error"]);
-    }
-}
-add_action('wp_ajax_save_product_mapping', 'save_product_mapping');
-
-function load_product_mapping()
-{
-    global $wpdb;
-    $table_name = $wpdb->prefix . 'qc_product_map';
-    $jsonResults = $wpdb->get_results("SELECT * FROM $table_name", ARRAY_A);
-    $results = json_encode($jsonResults);
-    foreach ($jsonResults as $result) {
-
-        ?>
-
-        <tr>
-            <td><?php echo $result['id']; ?></td>
-            <td><?php echo $result['product_name']; ?></td>
-            <td><?php echo $result['profile_name']; ?></td>
-        </tr>
-        <?php
-
-    }
-
-}
-add_action('wp_ajax_load_product_mapping', 'load_product_mapping');
 function quadcell_products_scripts()
 {
 
     wp_enqueue_script('jquery');
 
-    wp_enqueue_script('quadcell_products', plugin_dir_url(__FILE__) . 'quadcell-product-mapping.js', array('jquery'), null, true);
+    wp_enqueue_script(
+        'quadcell_products',
+        plugin_dir_url(__FILE__) . 'quadcell-product-mapping.js',
+        array('jquery'),
+        null,
+        true
+    );
     wp_localize_script('quadcell_products', 'quadcellProducts', array(
         'ajax_url' => admin_url('admin-ajax.php'),
         'nonce' => wp_create_nonce('quadcell_product'),

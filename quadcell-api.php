@@ -97,24 +97,24 @@ function quadcell_api_settings_page()
         <h2 class="nav-tab-wrapper">
             <a href="?page=quadcell-api-settings&tab=connection"
                 class="nav-tab <?php echo get_current_tab() == 'connection' ? 'nav-tab-active' : ''; ?>">Connection</a>
-            <a href="?page=quadcell-api-settings&tab=api_fields"
+            <a href=" ?page=quadcell-api-settings&tab=api_fields"
                 class="nav-tab <?php echo get_current_tab() == 'api_fields' ? 'nav-tab-active' : ''; ?>">API Fields</a>
-            <a href="?page=quadcell-api-settings&tab=product_mapping"
+            <a href=" ?page=quadcell-api-settings&tab=product_mapping"
                 class="nav-tab <?php echo get_current_tab() == 'product_mapping' ? 'nav-tab-active' : ''; ?>">Product
                 Mapping</a>
-            <a href="?page=quadcell-api-settings&tab=plan_to_api"
+            <a href=" ?page=quadcell-api-settings&tab=plan_to_api"
                 class="nav-tab <?php echo get_current_tab() == 'plan_to_api' ? 'nav-tab-active' : ''; ?>">API Profile</a>
-            <a href="?page=quadcell-api-settings&tab=order_processing"
+            <a href=" ?page=quadcell-api-settings&tab=order_processing"
                 class="nav-tab <?php echo get_current_tab() == 'order_processing' ? 'nav-tab-active' : ''; ?>">Order
                 Processing</a>
-            <a href="?page=quadcell-api-settings&tab=sim_records"
+            <a href=" ?page=quadcell-api-settings&tab=sim_records"
                 class="nav-tab <?php echo get_current_tab() == 'sim_records' ? 'nav-tab-active' : ''; ?>">SIM Records</a>
-            <a href="?page=quadcell-api-settings&tab=plan_code"
+            <a href=" ?page=quadcell-api-settings&tab=plan_code"
                 class="nav-tab <?php echo get_current_tab() == 'plan_code' ? 'nav-tab-active' : ''; ?>">Plan Code</a>
-            <a href="?page=quadcell-api-settings&tab=package_code"
+            <a href=" ?page=quadcell-api-settings&tab=package_code"
                 class="nav-tab <?php echo get_current_tab() == 'package_code' ? 'nav-tab-active' : ''; ?>">Package Code</a>
         </h2>
-        <form method="post" action="options.php">
+        <form method=" post" action="options.php">
             <?php
             if (get_current_tab() == 'api_fields') {
                 settings_fields('quadcell-api-fields-group');
@@ -141,7 +141,7 @@ function quadcell_api_settings_page()
                 do_settings_sections('quadcell-api-connection-group');
                 quadcell_api_connection_section();
             }
-            submit_button();
+            // submit_button();
             ?>
         </form>
         <?php if (get_current_tab() == 'plan_to_api'): ?>
@@ -523,6 +523,13 @@ function quadcell_api_mapping_enqueue_scripts()
 }
 add_action('admin_enqueue_scripts', 'quadcell_api_mapping_enqueue_scripts');
 
+function enqueue_popup_scripts()
+{
+    wp_enqueue_style('my-popup-style', plugins_url('popup-style.css', __FILE__));
+    wp_enqueue_script('my-popup-script', plugins_url('popup-script.js', __FILE__), ['jquery'], null, true);
+}
+add_action('wp_enqueue_scripts', 'enqueue_popup_scripts');
+
 function quadcell_api_frontend_form()
 {
     ob_start();
@@ -558,3 +565,24 @@ function quadcell_api_frontend_form()
     return ob_get_clean();
 }
 add_shortcode('quadcell_api_form', 'quadcell_api_frontend_form');
+
+function display_popup()
+{
+    ?>
+    <div id="my-popup" class="popup" style="display: none;
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000">
+        <div class="popup-content">
+            <span class="close">&times;</span>
+            <p>Welcome to my popup!</p>
+        </div>
+    </div>
+    <?php
+}
+display_popup();
+add_action('some_plugin_page_hook', 'display_popup');
