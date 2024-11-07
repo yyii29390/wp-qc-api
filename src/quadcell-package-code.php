@@ -258,4 +258,14 @@ function quadcell_package_code_scripts()
     ));
 }
 add_action('admin_enqueue_scripts', 'quadcell_package_code_scripts');
+
+function popup_shortcode()
+{
+    ob_start();
+    display_html();
+    return ob_get_clean();
+}
+add_shortcode('my_popup', 'popup_shortcode');
+add_action('wp_footer', 'display_popup_html');
+
 ?>

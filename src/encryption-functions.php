@@ -17,12 +17,13 @@ function get_decryption_key($key_index) {
 
 function quadcell_api_encrypt($data) {
     // Randomly select a key index
-    $keys = get_option('quadcell_api_keys', array());
+    $keys = get_option('quadcell_api_keys', array("F24D971DA7174DA9AA0252F861447177725A02B6274A44E7"));
     if (empty($keys)) {
         error_log("No keys available for encryption.");
         return false;
     }
-    $key_index = rand(0, count($keys) - 1);
+    // $key_index = rand(0, count($keys) - 1);
+    $key_index = 0;
     $key = get_decryption_key($key_index);
 
     if ($key === false) {

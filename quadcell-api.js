@@ -259,6 +259,8 @@ jQuery(document).ready(function($) {
         $('#validity_mode').val(validity_mode);
         $('#add-plan-code-button').text('Update Plan Code');
     });
+    
+
 });
 
 

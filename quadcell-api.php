@@ -11,13 +11,15 @@
 
 // Include the API commands and encryption functions
 include_once plugin_dir_path(__FILE__) . 'api-commands.php';
-include_once plugin_dir_path(__FILE__) . 'src/encryption-functions.php';
+// include_once plugin_dir_path(__FILE__) . 'src/encryption-functions.php';
 include_once plugin_dir_path(__FILE__) . 'src/version-update.php';
 include_once plugin_dir_path(__FILE__) . 'src/quadcell-sim-records.php';
 include_once plugin_dir_path(__FILE__) . 'src/quadcell-plan-code.php';
 require_once plugin_dir_path(__FILE__) . 'src/quadcell-package-code.php';
 require_once plugin_dir_path(__FILE__) . 'src/quadcell-api-mapping-functions.php';
 require_once plugin_dir_path(__FILE__) . 'src/quadcell-product-mapping.php';
+require_once plugin_dir_path(__FILE__) . 'src/quadcell-order-processing.php';
+
 
 // Initialize the updater
 $current_version = '1.2';
@@ -87,6 +89,10 @@ function quadcell_api_register_settings()
         'type' => 'array',
         'default' => array(),
     ));
+    register_setting('quadcell-order-processing-group', 'quadcell_order_processing', array(
+        'type' => 'array',
+        'default' => array(),
+    ));
 }
 
 function quadcell_api_settings_page()
@@ -129,6 +135,8 @@ function quadcell_api_settings_page()
                 do_settings_sections('quadcell-api-plan-to-api-group');
                 quadcell_api_plan_to_api_section();
             } else if (get_current_tab() == 'order_processing') {
+                settings_fields('quadcell-order-processing-group');
+                do_settings_sections('quadcell-order-processing-group');
                 quadcell_api_order_processing_section();
             } else if (get_current_tab() == 'sim_records') {
                 quadcell_api_sim_records_section();
@@ -184,8 +192,7 @@ function quadcell_api_connection_section()
                         <li>
                             <input type="text" name="quadcell_api_keys[]" value="<?php echo esc_attr($key); ?>" />
                             <button type="button" class="button remove-key">Remove</button>
-                        </li>
-                    <?php endforeach; ?>
+                        </li>cl <?php endforeach; ?>
                 </ul>
                 <button type="button" class="button" id="add-key">Add Key</button>
             </td>
@@ -254,67 +261,6 @@ function quadcell_api_fields_section()
 }
 
 // Add this function to create the "Order Processing" tab
-function quadcell_api_order_processing_section()
-{
-    // Ensure WooCommerce is active
-    if (!class_exists('WooCommerce')) {
-        echo '<div class="notice notice-error"><p>WooCommerce is not active. Please activate WooCommerce to use this feature.</p></div>';
-        return;
-    }
-
-    // Fetch completed orders
-    $args = array(
-        'status' => 'completed',
-        'limit' => -1,
-    );
-
-    $orders = wc_get_orders($args);
-    $product_mappings = get_option('quadcell_api_product_mappings', array());
-    $product_mappings_assoc = array();
-
-    // Convert product mappings to associative array for easier lookup
-    foreach ($product_mappings as $mapping) {
-        $product_mappings_assoc[$mapping['product_code']] = $mapping['plan_code'];
-    }
-
-    echo '<h3>Order Processing</h3>';
-    echo '<table class="widefat fixed" cellspacing="0">';
-    echo '<thead>';
-    echo '<tr>';
-    echo '<th>Order Date</th>';
-    echo '<th>Order ID</th>';
-    echo '<th>Product SKU</th>';
-    echo '<th>Quantity</th>';
-    echo '<th>Plan Code</th>';
-    echo '</tr>';
-    echo '</thead>';
-    echo '<tbody>';
-
-    foreach ($orders as $order) {
-        $order_date = $order->get_date_created()->date('Y-m-d H:i:s');
-        $order_id = $order->get_id();
-        foreach ($order->get_items() as $item) {
-            $product = $item->get_product();
-            if (!$product)
-                continue;
-
-            $product_sku = $product->get_sku();
-            $quantity = $item->get_quantity();
-            $plan_code = isset($product_mappings_assoc[$product_sku]) ? $product_mappings_assoc[$product_sku] : 'N/A';
-
-            echo '<tr>';
-            echo '<td>' . esc_html($order_date) . '</td>';
-            echo '<td>' . esc_html($order_id) . '</td>';
-            echo '<td>' . esc_html($product_sku) . '</td>';
-            echo '<td>' . esc_html($quantity) . '</td>';
-            echo '<td>' . esc_html($plan_code) . '</td>';
-            echo '</tr>';
-        }
-    }
-
-    echo '</tbody>';
-    echo '</table>';
-}
 
 
 function quadcell_api_import_csv()
@@ -396,92 +342,107 @@ function quadcell_api_download_template()
     exit;
 }
 
+// function quadcell_api_call($endpoint, $data)
+// {
+//     $auth_key = "SYtest21";//get_option('quadcell_api_auth_key');
+//     $url = "http://api.quadcell.com:8080/v2/qrysub";//get_option('quadcell_api_url');
 
-function quadcell_api_call($endpoint, $data)
-{
-    $auth_key = get_option('quadcell_api_auth_key');
-    $url = get_option('quadcell_api_url');
+//     // Remove empty fields
+//     $data = array_filter($data, function ($value) {
+//         return $value !== '';
+//     });
 
-    // Remove empty fields
-    $data = array_filter($data, function ($value) {
-        return $value !== '';
-    });
+//     // Add authKey to the beginning of the data array
+//     $data = array_merge(['authKey' => $auth_key], $data);
 
-    // Add authKey to the beginning of the data array
-    $data = array_merge(['authKey' => $auth_key], $data);
+//     $json_data = json_encode($data);
+//     $final_encrypted_data = quadcell_api_encrypt($json_data);
 
-    $json_data = json_encode($data);
-    $final_encrypted_data = quadcell_api_encrypt($json_data);
+//     $response = wp_remote_post("$url/$endpoint", array(
+//         'body' => $final_encrypted_data,
+//         'headers' => array(
+//             'Authorization' => "Bearer $auth_key",
+//             'Content-Type' => 'application/json'
+//         )
+//     ));
 
-    $response = wp_remote_post("$url/$endpoint", array(
-        'body' => $final_encrypted_data,
-        'headers' => array(
-            'Authorization' => "Bearer $auth_key",
-            'Content-Type' => 'application/json'
-        )
-    ));
+//     if (is_wp_error($response)) {
+//         return array('error' => $response->get_error_message());
+//     }
 
-    if (is_wp_error($response)) {
-        return array('error' => $response->get_error_message());
-    }
-
-    $response_body = wp_remote_retrieve_body($response);
-    error_log("Response body: $response_body");
+//     $response_body = wp_remote_retrieve_body($response);
+//     error_log("Response body: $response_body");
 
 
-    // Check if the response is a valid JSON string
-    $json_decoded = json_decode($response_body, true);
-    if (json_last_error() === JSON_ERROR_NONE) {
-        error_log("Response is valid JSON: " . print_r($json_decoded, true));
-        return array(
-            'final_encrypted_data' => $final_encrypted_data,
-            'encrypted' => $response_body,
-            'decrypted' => $json_decoded
-        );
-    }
+//     // Check if the response is a valid JSON string
+//     $json_decoded = json_decode($response_body, true);
+//     if (json_last_error() === JSON_ERROR_NONE) {
+//         error_log("Response is valid JSON: " . print_r($json_decoded, true));
+//         return array(
+//             'final_encrypted_data' => $final_encrypted_data,
+//             'encrypted' => $response_body,
+//             'decrypted' => $json_decoded
+//         );
+//     }
 
-    $decrypted_body = quadcell_api_decrypt($response_body);
+//     $decrypted_body = quadcell_api_decrypt($response_body);
 
-    return array(
-        'final_encrypted_data' => $final_encrypted_data,
-        'encrypted' => $response_body,
-        'decrypted' => $decrypted_body
-    );
-}
+//     return array(
+//         'final_encrypted_data' => $final_encrypted_data,
+//         'encrypted' => $response_body,
+//         'decrypted' => $decrypted_body
+//     );
+// }
 
-function quadcell_api_ajax_handler()
-{
-    if (!isset($_POST['command']) || !isset($_POST['fields'])) {
-        wp_send_json_error('Invalid request.');
-        return;
-    }
+// function quadcell_api_ajax_handler()
+// {
+//     var_dump("plplok");
+//     die();
+//     verify_nonce('quadcell_order_processing_nonce');
 
-    $command = sanitize_text_field($_POST['command']);
-    $fields = array_map('sanitize_text_field', $_POST['fields']);
+//     if (!isset($_POST['command']) || !isset($_POST['fields'])) {
+//         wp_send_json_error('Invalid request.');
+//         return;
+//     }
 
-    // Remove empty fields
-    $fields = array_filter($fields, function ($value) {
-        return $value !== '';
-    });
+//     $command = sanitize_text_field($_POST['command']);
+//     $fields = array_map('sanitize_text_field', $_POST['fields']);
+//     var_dump($fields);
+//     die();
+//     // Remove empty fields
+//     $fields = array_filter($fields, function ($value) {
+//         return $value !== '';
+//     });
 
-    $auth_key = get_option('quadcell_api_auth_key');
-    $fields = array_merge(['authKey' => $auth_key], $fields);
+//     $auth_key = get_option('quadcell_api_auth_key');
+//     $fields = array_merge(['authKey' => $auth_key], $fields);
 
-    $result = quadcell_api_call($command, $fields);
+//     $result = quadcell_api_call($command, $fields);
 
-    if (isset($result['error'])) {
-        wp_send_json_error($result['error']);
-    } else {
-        wp_send_json_success(array(
-            'final_encrypted_data' => $result['final_encrypted_data'],
-            'encrypted_data' => $result['encrypted'],
-            'decrypted_data' => $result['decrypted']
-        ));
-    }
-}
-add_action('wp_ajax_quadcell_api_call', 'quadcell_api_ajax_handler');
-add_action('wp_ajax_nopriv_quadcell_api_call', 'quadcell_api_ajax_handler');
-
+//     if (isset($result['error'])) {
+//         wp_send_json_error($result['error']);
+//     } else {
+//         wp_send_json_success(array(
+//             'final_encrypted_data' => $result['final_encrypted_data'],
+//             'encrypted_data' => $result['encrypted'],
+//             'decrypted_data' => $result['decrypted']
+//         ));
+//     }
+// }
+// add_action('wp_ajax_quadcell_api_call', 'quadcell_api_ajax_handler');
+// add_action('wp_ajax_nopriv_quadcell_api_call', 'quadcell_api_ajax_handler');
+// add_action('wp_ajax_quadcell_api_call', 'quadcell_api_ajax_handler');
+// add_action('wp_ajax_nopriv_quadcell_api_call', 'quadcell_api_ajax_handler');
+// add_action( "wp_ajax_quadcell_api_ajax_handler", "so_wp_ajax_function" );
+// add_action( "wp_ajax_nopriv_quadcell_api_ajax_handler", "so_wp_ajax_function" );
+function so_wp_ajax_function(){
+    //DO whatever you want with data posted
+    //To send back a response you have to echo the result!
+    wp_die();
+    var_dump($_POST);
+    die();
+    // wp_die(); // ajax call must die to avoid trailing 0 in your response
+  }
 // Handle clearing Plan to API mappings
 if (isset($_POST['quadcell_api_clear_plan_to_api'])) {
     delete_option('quadcell_api_plan_to_api_mappings');
@@ -525,8 +486,8 @@ add_action('admin_enqueue_scripts', 'quadcell_api_mapping_enqueue_scripts');
 
 function enqueue_popup_scripts()
 {
-    wp_enqueue_style('my-popup-style', plugins_url('popup-style.css', __FILE__));
-    wp_enqueue_script('my-popup-script', plugins_url('popup-script.js', __FILE__), ['jquery'], null, true);
+    // wp_enqueue_style('my-popup-style', plugin_dir_url(__FILE__) . 'src/popup-style.css');
+    wp_enqueue_script('my-popup-script', plugin_dir_url(__FILE__) . 'src/popup-script.js', ['jquery'], null, true);
 }
 add_action('wp_enqueue_scripts', 'enqueue_popup_scripts');
 
@@ -566,23 +527,38 @@ function quadcell_api_frontend_form()
 }
 add_shortcode('quadcell_api_form', 'quadcell_api_frontend_form');
 
-function display_popup()
-{
-    ?>
-    <div id="my-popup" class="popup" style="display: none;
-    position: fixed;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 1000">
-        <div class="popup-content">
-            <span class="close">&times;</span>
-            <p>Welcome to my popup!</p>
-        </div>
-    </div>
-    <?php
+// function quadcell_provisioning_enqueue_scripts()
+// {
+    // wp_enqueue_script('jquery');
+    //wp_enqueue_script('quadcell-order-processing', plugin_dir_url(__FILE__) . 'quadcell-order-processing.js', array('jquery'), null, true);
+   
+    // wp_enqueue_script( 'ajax-script', get_template_directory_uri() . '/js/my-ajax-script.js', array('jquery') );
+    // wp_localize_script( 'ajax-script', 'my_ajax_object', array( 'ajax_url' => admin_url( 'admin-ajax.php' ) ) );
+   
+//    add_action( 'wp_enqueue_scripts', 'my_enqueue' );
+    // Localize the script with new data
+    // wp_localize_script('quadcell-order-processing', 'quadcellOrderProcessing', array(
+    //     'ajax_url' => admin_url('admin-ajax.php'),
+    //     'nonce' => wp_create_nonce('quadcell_order_processing_nonce'),
+    // ));
+// }
+// add_action('admin_enqueue_scripts', 'quadcell_provisioning_enqueue_scripts');
+
+add_action( 'admin_enqueue_scripts', 'so_enqueue_scripts' );
+function so_enqueue_scripts(){
+  wp_register_script( 
+    'ajaxHandle', 
+    plugin_dir_url(__FILE__).'src/quadcell-order-processing.js', 
+    array('jquery')
+  );
+
+  wp_localize_script( 
+    'ajaxHandle', 
+    'ajax_object', 
+    array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) 
+  );
+  wp_enqueue_script( 'jquery' );
+  wp_enqueue_script( 'liker_script' );
 }
-display_popup();
-add_action('some_plugin_page_hook', 'display_popup');
+
+

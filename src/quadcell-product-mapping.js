@@ -1,5 +1,5 @@
 jQuery(document).ready(function($) {
-console.log("product mapping js start")
+
 
     // Function to load SIM records and refresh the table
     // function loadProducts() {
@@ -17,7 +17,7 @@ console.log("product mapping js start")
     // loadProducts();
     function loadProductsMapping() {
         $.get(quadcellProducts.ajax_url, { action: 'load_product_mapping' }, function(response) {
-            console.log(response)
+        
             if (response.success) {
                 $('#product-map-table-body').html(response.data.html);
             } else {
@@ -27,7 +27,7 @@ console.log("product mapping js start")
     }
     loadProductsMapping() 
     $('#product-map-form').on('submit', function(e) {
-        console.log("product mapping js form submit")
+  
         e.preventDefault();
 
         var formData = $(this).serializeArray();
@@ -39,7 +39,7 @@ console.log("product mapping js start")
             nonce: quadcellApiMapping.nonce,
       
         }, function(response) {
-            console.log(response)
+            
             if (response.success) {
                 alert('Product mapping updated successfully.');
                 loadProductsMapping()

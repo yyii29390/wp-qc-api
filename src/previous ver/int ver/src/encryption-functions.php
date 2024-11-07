@@ -17,7 +17,9 @@ function get_decryption_key($key_index) {
 
 function quadcell_api_encrypt($data) {
     // Randomly select a key index
+
     $keys = get_option('quadcell_api_keys', array());
+
     if (empty($keys)) {
         error_log("No keys available for encryption.");
         return false;
@@ -61,6 +63,7 @@ function quadcell_api_encrypt($data) {
 
     return $hex_string;
 }
+
 
 function quadcell_api_decrypt($data) {
     $header = substr($data, 0, 6);
